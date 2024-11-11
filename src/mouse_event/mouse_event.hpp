@@ -1,3 +1,4 @@
+#pragma once
 #if defined(_WIN32) || defined(_WIN64)
     #ifdef MOUSE_EVENT_EXPORTS
         #define MOUSE_EVENT_API __declspec(dllexport)
