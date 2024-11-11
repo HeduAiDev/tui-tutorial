@@ -17,19 +17,17 @@ void disableCSI() {
 }
 
 
-std::tuple<int,int,bool,bool> getMousePosition(std::string csi) {
+std::tuple<int,int,int> get_mouse_info(std::string csi) {
     std::regex re("\\<(\\d+);(\\d+);(\\d+)([m|M])");
     std::smatch match;
     if (std::regex_search(csi, match, re)) {
-        int press = std::stoi(match[1]) == 32;
-        int row = std::stoi(match[2]);
-        int col = std::stoi(match[3]);
-        bool click = (match[4] == "m");
-        return std::make_tuple(row, col, click, press);
+        int b = std::stoi(match[1]);
+        int x = std::stoi(match[2]);
+        int y = std::stoi(match[3]);
+        return std::make_tuple(x, y, b);
     } else {
-        return std::make_tuple(-1, -1, false, false);
+        return std::make_tuple(-1, -1, -1);
     }
-
 }
 
 void setRawMode(termios& orig_termios) {
@@ -54,21 +52,16 @@ void start_mouse_event_loop() {
     setRawMode(orig_termios);
     std::string csi;
     while (true) {
-        char ch;
-        ssize_t n = read(STDIN_FILENO, &ch, 1);
-        if (n == -1) {
-            perror("read");
-            break;
-        }
+        char ch = getchar();
         csi += (ch == '\033') ? 'E' : ch;
         if (ch == 'm' || ch == 'M') {
             // std::cout << "CSI: " << csi << std::endl;
-            auto [x,y, click, press] = getMousePosition(csi);
+            auto [x, y, b] = get_mouse_info(csi);
             if (x != -1 && y != -1) {
                 for (auto &func : event_pool) {
                     try {
                         std::flush(std::cout);
-                        func(x, y, click, press);
+                        func(x, y, b);
                     } catch(const std::exception& e) {
                         std::cerr << "Exception: " << e.what() << std::endl;
                     }
