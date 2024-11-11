@@ -58,6 +58,8 @@ void start_mouse_event_loop() {
         std::cerr << "Error getting input handle: " << GetLastError() << std::endl;
         return;
     }
+    DWORD origin_mode;
+    GetConsoleMode(hInput, &origin_mode);
     if (!open_ansi_control_char(hInput)) {
         std::cerr << "Error enabling ANSI control characters: " << GetLastError() << std::endl;
         return;
@@ -88,4 +90,5 @@ void start_mouse_event_loop() {
             break;
         }
     }
+    SetConsoleMode(hInput, origin_mode);
 }
